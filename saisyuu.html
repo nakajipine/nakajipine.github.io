@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>センサからの信号受信</title>
+  <audio autoplay id="audio">
+    <source src="images/pannyashingyou16.mp3">
+  </audio>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.3/addons/p5.sound.js"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <script src="googleSheets.js"></script>
+
+  </head>
+
+  <body> 
+  <div>
+    <div><span id="myid"></span></div>
+    <div><span id="room"></span></div>
+   
+
+
+<div id="result-div" class="large-text"></div>
+
+<p id="PassageArea"></p>
+  </div>
+      <p class="center-box">
+          <button id="speak">ありがたいお言葉</button></p>
+   
+  <script>
+    let room = "s1317239";
+    let socket = io.connect('https://qa.fujimura.com');    
+    let myid; 
+    let speedX = 0;
+    let speedY = 0;
+    let cat;
+ 
+    
+    
+    document.querySelector("#room").innerHTML = room;
+    socket.on('mylogin', function(data) {
+      myid = data;
+      socket.emit('join', room); // 受信room IDを指定
+      document.querySelector("#myid").innerHTML = myid;
+      console.log("あなたのID: ", myid);
+    });
+            
+    socket.on('sensor', function(data) {
+      console.log(parseInt(data.g,10));
+      speedX = 0.05*parseInt(data.g);
+      speedY = 0.05*parseInt(data.b);
+    });
+      
+        let x=0;
+        let y=0;
+       // let targetX = 0;
+        //let targetY = 0;
+      function preload(){
+          cat = loadImage("images/obou1.png");
+          kokecat = loadImage("images/obou2.png");
+
+      }
+
+        
+    function setup() {
+      createCanvas(600,500);
+      background(147,112,219);
+     x = width/2;
+     y = height/2;
+     bg = loadImage("images/jinja.jpg");
+    // targetX = random(width);
+     //targetY = random(height);
+
+
+    }
+           
+     function draw() {
+    background(bg);
+    x = x + speedX;
+    y = y + speedY;
+    if(x>width-100) x=width-100;
+    if(x<0) x=0;
+    if(y>height-100) y=height-100;
+    if(y<0) y=0;
+  
+    if(y<=0 || x<=0){
+        image(kokecat,x,y,300,300);
+
+    }
+        
+         
+    else image(cat,x,y,300,300);
+         
+   
+    }
+    
+
+ let msg = new SpeechSynthesisUtterance();
+  let voices = window.speechSynthesis.getVoices();
+
+  function speak(text) {
+    msg.voice = voices[7]; // 7:Google 日本人 ja-JP ※他は英語のみ
+    msg.volume = 1.0; // 音量 min 0 ~ max 1
+    msg.rate = 1.0; // 速度 min 0 ~ max 10
+    msg.pitch = 1.0; // 音程 min 0 ~ max 2
+
+    msg.text = text; // 喋る内容
+    msg.lang = 'ja-JP'; // en-US or ja-JP
+    // msg.lang = 'en-US'; // en-US or ja-JP
+
+    // 発話実行
+    speechSynthesis.speak(msg);
+  }
+  
+  // 終了時の処理
+  msg.onend = function (event) {
+    console.log("End: ",text);
+  }
+  
+  let text = "しゅじょうはふあんよな。あみだ、うごきます";
+
+  let button = document.querySelector("#speak");
+  button.onclick = function () {
+    speak(text);
+  }
+  
+  document.addEventListener('click', audioPlay);
+  function audioPlay(){
+                  document.getElementById('audio').play();
+                  document.removeEventListener('click',audioPlay);
+              }
+      
+ 
+
+</script>
+
+    
+</body>
+</html>
